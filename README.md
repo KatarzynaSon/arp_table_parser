@@ -34,3 +34,10 @@ The trade-off: the library supports exactly two input formats and nothing else. 
 `/proc/net/arp` can contain rows whose HW address is the literal string `<incomplete>` — the neighbour was known but its link-layer address has not been resolved. This library keeps those rows verbatim in `hw_address` rather than dropping them, because whether they are interesting is the caller's call. Check for `<incomplete>` in `hw_address` if you want only resolved neighbours.
 
 The `arp -n` parser verifies each row by content (valid IPv4 in the first field, valid MAC in the third) rather than by matching header words. Localised `arp` output renames the header columns; the header is still skipped because its first field is not a valid IP. This means a genuinely garbled data row is also silently skipped — if you need to know about unparseable rows, count them yourself by comparing the input line count to `len(parse_arp_output(text))`.
+
+## Performance
+
+The window keeps a bounded buffer, so `push` is constant time and memory does not
+grow with the length of the stream. `peak` and `trough` are linear in the window
+size, which is the trade that keeps `push` cheap.
+
